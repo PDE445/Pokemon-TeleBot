@@ -119,6 +119,16 @@ def help_message(message):
     "/attack — атаковать другого игрока (ответь на его сообщение)\n"
     "/help — показать список команд")
 
+@bot.message_handler(commands=['feed'])
+def feed(message):
+    username = message.from_user.username or message.from_user.first_name
+    if username in Pokemon.pokemons:
+        pokemon = Pokemon.pokemons[username]
+        result = pokemon.feed()  # вызываем метод feed
+        bot.send_message(message.chat.id, result)
+    else:
+        bot.reply_to(message, "❌ У тебя пока нет покемона. Создай его командой /go")
+        
 # --- Запуск бота ---
 print("✅ Бот запускается... ждём команды от Telegram")
 bot.infinity_polling(none_stop=True)

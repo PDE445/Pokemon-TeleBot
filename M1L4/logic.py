@@ -1,5 +1,6 @@
-from random import randint, uniform
+from random import randint, uniform 
 import requests
+from datetime import datetime, timedelta  # ✅ Импорт для метода feed
 
 
 class Pokemon:
@@ -23,6 +24,8 @@ class Pokemon:
         # Дополнительные игровые свойства
         self.level = 1
         self.exp = 0
+        self.last_feed_time = datetime.min  # ✅ Время последнего кормления
+        self.hp = self.stats.get("hp", 100)  # Для работы feed, если hp нет
 
         # Статы (HP, Attack, Defense и т.п.)
         self.stats = {s["stat"]["name"]: s["base_stat"] for s in self.data["stats"]}
@@ -109,6 +112,36 @@ class Pokemon:
             return self.level_up()
         return f"{self.name} получил {amount} опыта. Всего: {self.exp}/{self.base_experience}"
 
+    # ✅ Новый метод feed
+    def feed(self, feed_interval=20, hp_increase=10):
+        """
+        Кормит покемона:
+        - Проверяет время последнего кормления
+        - Увеличивает здоровье, если прошло достаточно времени
+        - Для Wizard здоровье увеличивается больше
+        - Для Fighter интервал кормления меньше
+        """
+        current_time = datetime.now()
+
+        # Настройка интервала и увеличения hp для суперспособностей
+        interval = feed_interval
+        hp_gain = hp_increase
+
+        if self.super_ability == "Wizard":
+            hp_gain *= 2  # Волшебник получает больше здоровья
+        elif self.super_ability == "Fighter":
+            interval = feed_interval // 2  # Боец кормится чаще
+
+        delta_time = timedelta(seconds=interval)
+
+        if (current_time - self.last_feed_time) > delta_time:
+            self.hp += hp_gain
+            self.last_feed_time = current_time
+            return f"Здоровье покемона увеличено на {hp_gain}. Текущее здоровье: {self.hp}"
+        else:
+            next_feed = self.last_feed_time + delta_time
+            return f"Следующее время кормления покемона: {next_feed}"
+
 
 # ✅ Новый код: функция для сражений
 def battle(pokemon1, pokemon2, attacker_name, defender_name):
@@ -150,6 +183,7 @@ def battle(pokemon1, pokemon2, attacker_name, defender_name):
         )
 
     return result
+
 
 
 
